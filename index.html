@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Kutubxona</title>
+    <style>
+        :root { --primary: #2563eb; --bg: #f1f5f9; --dark: #1e293b; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        
+        .header { text-align: center; padding: 30px; background: white; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 30px; }
+        h1 { color: var(--primary); margin: 0; }
+
+        /* Qidiruv */
+        .search-container { margin-bottom: 30px; }
+        #searchInput { width: 100%; padding: 15px; border-radius: 12px; border: 2px solid #ddd; font-size: 1rem; box-sizing: border-box; }
+
+        /* Kitoblar Gridi */
+        .book-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+        .book-card { background: white; padding: 20px; border-radius: 15px; text-align: center; cursor: pointer; transition: 0.3s; border-bottom: 4px solid var(--primary); }
+        .book-card:hover { transform: translateY(-10px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .book-card h3 { margin: 10px 0 5px; color: var(--dark); font-size: 1.1rem; }
+        .book-card p { color: #64748b; font-size: 0.9rem; margin-bottom: 15px; }
+        .info-btn { background: var(--primary); color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; }
+
+        /* Modal (Kitob haqida ma'lumot oynasi) */
+        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); }
+        .modal-content { background: white; margin: 10% auto; padding: 30px; width: 80%; max-width: 500px; border-radius: 20px; position: relative; animation: slideDown 0.4s; }
+        @keyframes slideDown { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .close { position: absolute; right: 20px; top: 15px; font-size: 28px; cursor: pointer; color: #64748b; }
+        #modalTitle { color: var(--primary); }
+        #modalText { line-height: 1.6; color: #334155; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>📚 Maktab Online Kutubxonasi</h1>
+        <p>Kitob ustiga bosing va u haqida ma'lumot oling</p>
+    </div>
+
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="Kitob nomi bo'yicha qidirish..." onkeyup="searchBook()">
+    </div>
+
+    <div class="book-grid" id="bookList">
+        </div>
+</div>
+
+<div id="bookModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2 id="modalTitle"></h2>
+        <h4 id="modalAuthor" style="color: #64748b;"></h4>
+        <hr>
+        <p id="modalText"></p>
+    </div>
+</div>
+
+<script>
+    const books = [
+        { title: "O'tkan kunlar", author: "Abdulla Qodiriy", info: "O'zbek adabiyotidagi birinchi roman. Kumush va Otabekning fojiaviy muhabbati haqida hikoya qiladi." },
+        { title: "Sariq devni minib", author: "Xudoyberdi To'xtaboyev", info: "G'aroyib va sarguzashtlarga boy asar. Hoshimjon ismli bolakayning sehrli qalpoqcha bilan boshdan kechirganlari." },
+        { title: "Yulduzli tunlar", author: "Pirimqul Qodirov", info: "Zahiriddin Muhammad Boburning hayoti va murakkab taqdiri haqida tarixiy roman." },
+        { title: "Dunyoning ishlari", author: "O'tkir Hoshimov", info: "Ona siymosi tarannum etilgan, insoniy xislatlar va mahalla hayoti aks etgan go'zal asar." },
+        { title: "Alisher Navoiy", author: "Oybek", info: "Buyuk mutafakkir va shoir Alisher Navoiyning hayoti, ijodi va davlat arbobi sifatidagi faoliyati." },
+        { title: "Kichik shahzoda", author: "Antuan de Sent-Ekzyuperi", info: "Butun dunyoga mashhur falsafiy ertak. Bolalik beg'uborligi va insoniy munosabatlar haqida." },
+        { title: "Ikki eshik orasi", author: "O'tkir Hoshimov", info: "Urush yillari va undan keyingi davr hayoti, insoniy taqdirlar chalkashligi haqida ta'sirli asar." },
+        { title: "Shum bola", author: "G'afur G'ulom", info: "O'zbek xalqining hayoti, hazil-mutoyiba va qahramonning sarguzashtlari orqali tasvirlangan qissa." },
+        { title: "Raqamli qal'a", author: "Den Braun", info: "Zamonaviy detektiv va texnologiyalar haqidagi hayajonli triller asar." },
+        { title: "Sariq devning o'limi", author: "Xudoyberdi To'xtaboyev", info: "Hoshimjonning sarguzashtlari davomi. Bu safar u yomon illatlarga qarshi kurashadi." }
+    ];
+
+    const bookList = document.getElementById('bookList');
+
+    function displayBooks(data) {
+        bookList.innerHTML = "";
+        data.forEach((book, index) => {
+            bookList.innerHTML += `
+                <div class="book-card" onclick="openModal(${index})">
+                    <h3>${book.title}</h3>
+                    <p>${book.author}</p>
+                    <button class="info-btn">Batafsil</button>
+                </div>
+            `;
+        });
+    }
+
+    function openModal(index) {
+        const book = books[index];
+        document.getElementById('modalTitle').innerText = book.title;
+        document.getElementById('modalAuthor').innerText = book.author;
+        document.getElementById('modalText').innerText = book.info;
+        document.getElementById('bookModal').style.display = "block";
+    }
+
+    function closeModal() {
+        document.getElementById('bookModal').style.display = "none";
+    }
+
+    function searchBook() {
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        const filtered = books.filter(b => b.title.toLowerCase().includes(query) || b.author.toLowerCase().includes(query));
+        displayBooks(filtered);
+    }
+
+    // Modal tashqarisiga bosilganda yopish
+    window.onclick = function(event) {
+        if (event.target == document.getElementById('bookModal')) {
+            closeModal();
+        }
+    }
+
+    displayBooks(books);
+</script>
+
+</body>
+</html>
